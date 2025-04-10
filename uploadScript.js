@@ -12,7 +12,7 @@ async function uploadImage() {
     form.append('image', fs.createReadStream(imagePath));
 
     try {
-        const response = await axios.post('http://your-server-url/upload', form, {
+        const response = await axios.post('https://trunkserver.onrender.com/upload', form, {
             headers: form.getHeaders(),
         });
         console.log('Image uploaded successfully:', response.data);
