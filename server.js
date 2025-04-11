@@ -20,18 +20,21 @@ const storage = multer.diskStorage({
         cb(null, 'latest.jpg');
     }
 });
+
 const upload = multer({ storage });
 
 // 静的ファイルの提供（画像表示用）
 app.use('/uploads', express.static(uploadDir));
 
-// HTMLフォームを表示
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/index.html'));
-});
-
 // 画像アップロード処理
-app.post('/upload', upload.single('image'), (req, res) => {
+app.post('/upload', (req, res, next) => {
+    // 画像が既に存在していれば削除
+    if (fs.existsSync(uploadPath)) {
+        fs.unlinkSync(uploadPath);  // ファイルを削除
+        console.log('Existing image deleted.');
+    }
+    next();  // 画像削除後、アップロード処理を実行
+}, upload.single('image'), (req, res) => {
     res.send('アップロード完了！');
 });
 
@@ -39,3 +42,4 @@ app.post('/upload', upload.single('image'), (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
+
