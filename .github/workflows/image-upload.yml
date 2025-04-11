@@ -1,8 +1,8 @@
-name: Upload Image Every 2 Hours
+name: Upload Image Every 1 Hour
 
 on:
   schedule:
-    - cron: "0 */2 * * *"  # 2時間ごとに実行
+    - cron: "0 * * * *"  # 1時間ごとに実行
   workflow_dispatch:  # 手動でも実行できるようにするオプション
 
 jobs:
@@ -22,3 +22,4 @@ jobs:
 
       - name: Upload image to server
         run: node uploadScript.js  # 画像アップロードスクリプトを実行
+
