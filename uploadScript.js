@@ -3,8 +3,8 @@ const fs = require('fs');
 const FormData = require('form-data');
 const path = require('path');
 
-// アップロードする画像ファイルのパス
-const imagePath = path.join(__dirname, 'public', 'image.jpg');
+// アップロードする画像ファイルのパス（必ず 'latest.jpg' に設定）
+const imagePath = path.join(__dirname, 'public', 'latest.jpg');
 
 // 画像をアップロードする関数
 async function uploadImage() {
@@ -12,7 +12,7 @@ async function uploadImage() {
     form.append('image', fs.createReadStream(imagePath));
 
     try {
-        const response = await axios.post('https://trunkserver.onrender.com/upload', form, {
+        const response = await axios.post('http://your-server-url/upload', form, {
             headers: form.getHeaders(),
         });
         console.log('Image uploaded successfully:', response.data);
@@ -23,3 +23,4 @@ async function uploadImage() {
 
 // 画像アップロードを実行
 uploadImage();
+
