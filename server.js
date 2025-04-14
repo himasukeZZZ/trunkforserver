@@ -3,6 +3,7 @@ const { Storage } = require('@google-cloud/storage');
 const path = require('path');
 const multer = require('multer');
 const stream = require('stream');
+const cors = require('cors');  // CORSのインポート
 
 // Google Cloud Storageの設定
 const storage = new Storage({
@@ -14,6 +15,9 @@ const bucket = storage.bucket(bucketName);
 // Expressアプリケーションの設定
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// CORSミドルウェアを使用して、全てのリクエストを許可
+app.use(cors());  // これでCORSエラーが解消される
 
 // 静的ファイル（HTML、CSS、JS）を提供
 app.use(express.static(path.join(__dirname, 'public')));  // 'public'ディレクトリの中のファイルを提供
