@@ -19,15 +19,15 @@
     <h1>画像アップロード</h1>
     <form action="http://localhost:3000/upload" method="POST" enctype="multipart/form-data">
         <!-- 最新画像のアップロード -->
-        <label for="latestImage">最新画像 (latest.jpg):</label>
+        <label for="latestImage">ビール画像:</label>
         <input type="file" name="latestImage" id="latestImage" required>
-        <button type="submit" id="uploadLatest">アップロード (最新画像)</button>
+        <button type="submit" id="uploadLatest">アップロード (ビール画像)</button>
         <br><br>
 
         <!-- フィルター画像のアップロード -->
-        <label for="filterImage">フィルター画像 (filter.jpg):</label>
+        <label for="filterImage">コーヒー画像:</label>
         <input type="file" name="filterImage" id="filterImage" required>
-        <button type="submit" id="uploadFilter">アップロード (フィルター画像)</button>
+        <button type="submit" id="uploadFilter">アップロード (コーヒー画像)</button>
     </form>
 
     <script>
