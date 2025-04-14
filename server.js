@@ -8,7 +8,7 @@ const stream = require('stream');
 const storage = new Storage({
   keyFilename: path.join(__dirname, 'your-service-account-file.json')  // サービスアカウントのJSONファイルのパスを指定
 });
-const bucketName = 'your-bucket-name';
+const bucketName = 'trunk-beer-coffee-menu.appspot.com';
 const bucket = storage.bucket(bucketName);
 
 // Expressアプリケーションの設定
