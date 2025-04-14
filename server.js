@@ -29,6 +29,10 @@ const upload = multer();
 // 画像アップロード用エンドポイント
 app.post('/upload', upload.fields([{ name: 'latestImage' }, { name: 'filterImage' }]), (req, res) => {
   // それぞれの画像をGoogle Cloud Storageにアップロード
+  if (!req.files || !req.files.latestImage || !req.files.filterImage) {
+    console.error('Error: Missing image files');
+    return res.status(400).send('Both images (latest and filter) are required');
+  }
 
   // 最新画像 (latest.jpg)
   const latestImageFile = req.files.latestImage[0];
@@ -48,7 +52,6 @@ app.post('/upload', upload.fields([{ name: 'latestImage' }, { name: 'filterImage
     console.error('Error uploading latest.jpg:', err);
     return res.status(500).send('Error uploading latest.jpg');
   });
-  }
 
   // フィルター画像 (filter.jpg)
   const filterImageFile = req.files.filterImage[0];
