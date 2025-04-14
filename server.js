@@ -9,7 +9,7 @@ const storage = new Storage({
 });
 
 // Google Cloud Storageのバケット名
-const bucketName = 'your-bucket-name';
+const bucketName = 'trunk-beer-coffee-menu.appspot.com';
 const bucket = storage.bucket(bucketName);
 
 const app = express();
