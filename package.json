@@ -4,12 +4,13 @@
   "description": "A simple Node.js server for uploading images to Google Cloud Storage",
   "main": "server.js",
   "dependencies": {
-    "express": "^4.17.1",
-    "@google-cloud/storage": "^5.8.0",
-    "multer": "^1.4.3"
+    "express": "^4.17.1",                      // Expressフレームワーク
+    "@google-cloud/storage": "^5.8.0",         // Google Cloud Storage SDK
+    "multer": "^1.4.3",                        // 画像アップロード用のパッケージ
+    "cors": "^2.8.5"                           // CORS対応のためのパッケージ
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js"                  // サーバー起動用のコマンド
   },
   "author": "",
   "license": "ISC"
