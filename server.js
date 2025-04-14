@@ -15,6 +15,14 @@ const bucket = storage.bucket(bucketName);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 静的ファイル（HTML、CSS、JS）を提供
+app.use(express.static(path.join(__dirname, 'public')));  // 'public'ディレクトリの中のファイルを提供
+
+// ルートURLにアクセスしたときの処理
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));  // 'index.html'を表示
+});
+
 // multer設定 (ファイルを一時保存する場所)
 const upload = multer();
 
