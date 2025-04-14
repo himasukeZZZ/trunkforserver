@@ -1,41 +1,67 @@
 const express = require('express');
-const multer = require('multer');
+const { Storage } = require('@google-cloud/storage');
 const path = require('path');
-const fs = require('fs');
+const stream = require('stream');
+
+// Google Cloud Storageの認証情報を設定
+const storage = new Storage({
+    keyFilename: path.join(__dirname, 'your-service-account-file.json')  // サービスアカウントのJSONファイルのパスを指定
+});
+
+// Google Cloud Storageのバケット名
+const bucketName = 'your-bucket-name';
+const bucket = storage.bucket(bucketName);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const uploadDir = path.join(__dirname, 'uploads');
-const uploadPath = path.join(uploadDir, 'latest.jpg');
 
-// アップロードディレクトリがなければ作成
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
+// アップロード処理
+app.post('/upload', (req, res) => {
+    const passThrough = new stream.PassThrough();
+    
+    // リクエストボディから画像データを受け取る
+    req.pipe(passThrough);
 
-// Multer設定（常に 'latest.jpg' に保存）
-const storage = multer.diskStorage({
-    destination: uploadDir,
-    filename: (req, file, cb) => {
-        cb(null, 'latest.jpg');
-    }
-});
+    // 最初の画像 (latest.jpg) をアップロード
+    const latestFileName = `latest.jpg`;
+    const latestFile = bucket.file(latestFileName);
+    const latestWriteStream = latestFile.createWriteStream({
+        resumable: false,
+        contentType: req.headers['content-type'],
+    });
 
-const upload = multer({ storage });
+    // 2番目の画像 (filter.jpg) をアップロード
+    const filterFileName = `filter.jpg`;
+    const filterFile = bucket.file(filterFileName);
+    const filterWriteStream = filterFile.createWriteStream({
+        resumable: false,
+        contentType: req.headers['content-type'],
+    });
 
-// 静的ファイルの提供（画像表示用）
-app.use('/uploads', express.static(uploadDir));
+    // リクエストデータを両方のストリームにパイプ
+    passThrough.pipe(latestWriteStream);
+    passThrough.pipe(filterWriteStream);
 
-// 画像アップロード処理
-app.post('/upload', (req, res, next) => {
-    // 画像が既に存在していれば削除
-    if (fs.existsSync(uploadPath)) {
-        fs.unlinkSync(uploadPath);  // ファイルを削除
-        console.log('Existing image deleted.');
-    }
-    next();  // 画像削除後、アップロード処理を実行
-}, upload.single('image'), (req, res) => {
-    res.send('アップロード完了！');
+    // 両方のアップロードが完了したときの処理
+    latestWriteStream.on('finish', () => {
+        console.log('latest.jpg uploaded successfully!');
+    });
+
+    filterWriteStream.on('finish', () => {
+        console.log('filter.jpg uploaded successfully!');
+        res.status(200).send('画像アップロード完了！');
+    });
+
+    // エラーハンドリング
+    latestWriteStream.on('error', (err) => {
+        console.error('Error uploading latest.jpg:', err);
+        res.status(500).send('アップロードに失敗しました');
+    });
+
+    filterWriteStream.on('error', (err) => {
+        console.error('Error uploading filter.jpg:', err);
+        res.status(500).send('アップロードに失敗しました');
+    });
 });
 
 // サーバー起動
