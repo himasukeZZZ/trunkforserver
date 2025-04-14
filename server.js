@@ -1,71 +1,62 @@
 const express = require('express');
 const { Storage } = require('@google-cloud/storage');
 const path = require('path');
+const multer = require('multer');
 const stream = require('stream');
 
-// Google Cloud Storageの認証情報を設定
+// Google Cloud Storageの設定
 const storage = new Storage({
-    keyFilename: path.join(__dirname, 'your-service-account-file.json')  // サービスアカウントのJSONファイルのパスを指定
+  keyFilename: path.join(__dirname, 'your-service-account-file.json')  // サービスアカウントのJSONファイルのパスを指定
 });
-
-// Google Cloud Storageのバケット名
-const bucketName = 'trunk-beer-coffee-menu.appspot.com';
+const bucketName = 'your-bucket-name';
 const bucket = storage.bucket(bucketName);
 
+// Expressアプリケーションの設定
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// アップロード処理
-app.post('/upload', (req, res) => {
-    const passThrough = new stream.PassThrough();
-    
-    // リクエストボディから画像データを受け取る
-    req.pipe(passThrough);
+// multer設定 (ファイルを一時保存する場所)
+const upload = multer();
 
-    // 最初の画像 (latest.jpg) をアップロード
-    const latestFileName = `latest.jpg`;
-    const latestFile = bucket.file(latestFileName);
+// 画像アップロード用エンドポイント
+app.post('/upload', upload.fields([{ name: 'latestImage' }, { name: 'filterImage' }]), (req, res) => {
+  // それぞれの画像をGoogle Cloud Storageにアップロード
+
+  // 最新画像 (latest.jpg)
+  if (req.files.latestImage) {
+    const latestImageFile = req.files.latestImage[0];
+    const latestFile = bucket.file('latest.jpg');
     const latestWriteStream = latestFile.createWriteStream({
-        resumable: false,
-        contentType: req.headers['content-type'],
+      resumable: false,
+      contentType: latestImageFile.mimetype,
     });
 
-    // 2番目の画像 (filter.jpg) をアップロード
-    const filterFileName = `filter.jpg`;
-    const filterFile = bucket.file(filterFileName);
-    const filterWriteStream = filterFile.createWriteStream({
-        resumable: false,
-        contentType: req.headers['content-type'],
-    });
+    stream.Readable.from(latestImageFile.buffer).pipe(latestWriteStream);
 
-    // リクエストデータを両方のストリームにパイプ
-    passThrough.pipe(latestWriteStream);
-    passThrough.pipe(filterWriteStream);
-
-    // 両方のアップロードが完了したときの処理
     latestWriteStream.on('finish', () => {
-        console.log('latest.jpg uploaded successfully!');
+      console.log('latest.jpg uploaded successfully!');
     });
+  }
+
+  // フィルター画像 (filter.jpg)
+  if (req.files.filterImage) {
+    const filterImageFile = req.files.filterImage[0];
+    const filterFile = bucket.file('filter.jpg');
+    const filterWriteStream = filterFile.createWriteStream({
+      resumable: false,
+      contentType: filterImageFile.mimetype,
+    });
+
+    stream.Readable.from(filterImageFile.buffer).pipe(filterWriteStream);
 
     filterWriteStream.on('finish', () => {
-        console.log('filter.jpg uploaded successfully!');
-        res.status(200).send('画像アップロード完了！');
+      console.log('filter.jpg uploaded successfully!');
+      res.status(200).send('画像アップロード完了！');
     });
-
-    // エラーハンドリング
-    latestWriteStream.on('error', (err) => {
-        console.error('Error uploading latest.jpg:', err);
-        res.status(500).send('アップロードに失敗しました');
-    });
-
-    filterWriteStream.on('error', (err) => {
-        console.error('Error uploading filter.jpg:', err);
-        res.status(500).send('アップロードに失敗しました');
-    });
+  }
 });
 
 // サーバー起動
 app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
-
