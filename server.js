@@ -31,37 +31,44 @@ app.post('/upload', upload.fields([{ name: 'latestImage' }, { name: 'filterImage
   // それぞれの画像をGoogle Cloud Storageにアップロード
 
   // 最新画像 (latest.jpg)
-  if (req.files.latestImage) {
-    const latestImageFile = req.files.latestImage[0];
-    const latestFile = bucket.file('latest.jpg');
-    const latestWriteStream = latestFile.createWriteStream({
-      resumable: false,
-      contentType: latestImageFile.mimetype,
-    });
+  const latestImageFile = req.files.latestImage[0];
+  const latestFile = bucket.file('latest.jpg');
+  const latestWriteStream = latestFile.createWriteStream({
+    resumable: false,
+    contentType: latestImageFile.mimetype,
+  });
 
-    stream.Readable.from(latestImageFile.buffer).pipe(latestWriteStream);
+  stream.Readable.from(latestImageFile.buffer).pipe(latestWriteStream);
 
-    latestWriteStream.on('finish', () => {
-      console.log('latest.jpg uploaded successfully!');
-    });
+  latestWriteStream.on('finish', () => {
+    console.log('latest.jpg uploaded successfully!');
+  });
+
+  latestWriteStream.on('error', (err) => {
+    console.error('Error uploading latest.jpg:', err);
+    return res.status(500).send('Error uploading latest.jpg');
+  });
   }
 
   // フィルター画像 (filter.jpg)
-  if (req.files.filterImage) {
-    const filterImageFile = req.files.filterImage[0];
-    const filterFile = bucket.file('filter.jpg');
-    const filterWriteStream = filterFile.createWriteStream({
-      resumable: false,
-      contentType: filterImageFile.mimetype,
-    });
+  const filterImageFile = req.files.filterImage[0];
+  const filterFile = bucket.file('filter.jpg');
+  const filterWriteStream = filterFile.createWriteStream({
+    resumable: false,
+    contentType: filterImageFile.mimetype,
+  });
 
-    stream.Readable.from(filterImageFile.buffer).pipe(filterWriteStream);
+  stream.Readable.from(filterImageFile.buffer).pipe(filterWriteStream);
 
-    filterWriteStream.on('finish', () => {
-      console.log('filter.jpg uploaded successfully!');
-      res.status(200).send('画像アップロード完了！');
-    });
-  }
+  filterWriteStream.on('finish', () => {
+    console.log('filter.jpg uploaded successfully!');
+    return res.status(200).send('Both images uploaded successfully!');
+  });
+
+  filterWriteStream.on('error', (err) => {
+    console.error('Error uploading filter.jpg:', err);
+    return res.status(500).send('Error uploading filter.jpg');
+  });
 });
 
 // サーバー起動
