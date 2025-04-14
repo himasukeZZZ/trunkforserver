@@ -1,40 +1,25 @@
 const express = require('express');
-const { Storage } = require('@google-cloud/storage');
 const path = require('path');
 const multer = require('multer');
+const admin = require('firebase-admin');
 const stream = require('stream');
-const cors = require('cors');  // CORSのインポート
 
-// Google Cloud Storageの設定
-const storage = new Storage({
-  keyFilename: path.join(__dirname, 'your-service-account-file.json')  // サービスアカウントのJSONファイルのパスを指定
+// Firebase Admin SDKの初期化
+admin.initializeApp({
+  credential: admin.credential.cert(path.join(__dirname, 'your-service-account-file.json')),  // サービスアカウントJSONファイルのパス
+  storageBucket: 'trunk-beer-coffee-menu.appspot.com',  // Firebase Storageのバケット名
 });
-const bucketName = 'trunk-beer-coffee-menu.appspot.com';
-const bucket = storage.bucket(bucketName);
 
-// Expressアプリケーションの設定
+const bucket = admin.storage().bucket();
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// CORSミドルウェアを使用して、全てのリクエストを許可
-app.use(cors());  // これでCORSエラーが解消される
-
-// 静的ファイル（HTML、CSS、JS）を提供
-app.use(express.static(path.join(__dirname, 'public')));  // 'public'ディレクトリの中のファイルを提供
-
-// ルートURLにアクセスしたときの処理
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));  // 'index.html'を表示
-});
 
 // multer設定 (ファイルを一時保存する場所)
 const upload = multer();
 
 // 画像アップロード用エンドポイント
 app.post('/upload', upload.fields([{ name: 'latestImage' }, { name: 'filterImage' }]), (req, res) => {
-  // それぞれの画像をGoogle Cloud Storageにアップロード
   if (!req.files || !req.files.latestImage || !req.files.filterImage) {
-    console.error('Error: Missing image files');
     return res.status(400).send('Both images (latest and filter) are required');
   }
 
