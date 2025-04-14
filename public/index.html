@@ -16,81 +16,54 @@
     </script>
 </head>
 <body>
-    <h2>画像をアップロード</h2>
-    <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
-        <input type="file" id="image-input" name="image" accept="image/*" required>
-        <br>
-        <button type="submit">アップロード</button>
+    <h1>画像アップロード</h1>
+    <form action="http://localhost:3000/upload" method="POST" enctype="multipart/form-data">
+        <!-- 最新画像のアップロード -->
+        <label for="latestImage">最新画像 (latest.jpg):</label>
+        <input type="file" name="latestImage" id="latestImage" required>
+        <button type="submit" id="uploadLatest">アップロード (最新画像)</button>
+        <br><br>
+
+        <!-- フィルター画像のアップロード -->
+        <label for="filterImage">フィルター画像 (filter.jpg):</label>
+        <input type="file" name="filterImage" id="filterImage" required>
+        <button type="submit" id="uploadFilter">アップロード (フィルター画像)</button>
     </form>
 
     <script>
-        // 画像圧縮関数
-        function compressImage(file, callback) {
-            const img = new Image();
-            const reader = new FileReader();
+        // 別々のアップロードボタンを処理
+        document.getElementById('uploadLatest').addEventListener('click', function(event) {
+            event.preventDefault();  // フォームの自動送信を防ぐ
 
-            reader.onload = function(e) {
-                img.src = e.target.result;
-            };
+            // 最新画像だけを送信する処理
+            let formData = new FormData();
+            formData.append('latestImage', document.getElementById('latestImage').files[0]);
 
-            img.onload = function() {
-                const MAX_WIDTH = 800; // 最大幅
-                const MAX_HEIGHT = 800; // 最大高さ
-                let width = img.width;
-                let height = img.height;
+            // AJAXでアップロード
+            fetch('http://localhost:3000/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => alert(data))
+            .catch(error => alert('アップロード失敗: ' + error));
+        });
 
-                // 縦横比を保ったままサイズ調整
-                if (width > height) {
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-                } else {
-                    if (height > MAX_HEIGHT) {
-                        width *= MAX_HEIGHT / height;
-                        height = MAX_HEIGHT;
-                    }
-                }
+        document.getElementById('uploadFilter').addEventListener('click', function(event) {
+            event.preventDefault();  // フォームの自動送信を防ぐ
 
-                // Canvasに描画して圧縮
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
+            // フィルター画像だけを送信する処理
+            let formData = new FormData();
+            formData.append('filterImage', document.getElementById('filterImage').files[0]);
 
-                // 圧縮後の画像をbase64に変換
-                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7); // 0.7は圧縮率
-
-                // base64画像をコールバックに渡す
-                callback(compressedDataUrl);
-            };
-
-            reader.readAsDataURL(file);
-        }
-
-        // フォーム送信前に画像を圧縮して、送信する画像を変更
-        document.getElementById('upload-form').addEventListener('submit', function(event) {
-            event.preventDefault();  // フォーム送信を一旦キャンセル
-
-            const fileInput = document.getElementById('image-input');
-            const file = fileInput.files[0];
-
-            if (file) {
-                compressImage(file, function(compressedImage) {
-                    // 圧縮後の画像をフォームに追加
-                    const compressedFileInput = document.createElement('input');
-                    compressedFileInput.type = 'hidden';
-                    compressedFileInput.name = 'compressedImage';
-                    compressedFileInput.value = compressedImage;
-
-                    // 圧縮後の画像をフォームに追加
-                    document.getElementById('upload-form').appendChild(compressedFileInput);
-
-                    // フォームを送信
-                    document.getElementById('upload-form').submit();
-                });
-            }
+            // AJAXでアップロード
+            fetch('http://localhost:3000/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => alert(data))
+            .catch(error => alert('アップロード失敗: ' + error));
         });
     </script>
 </body>
